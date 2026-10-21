@@ -1,0 +1,28 @@
+CHO SPOT / SalesCos Render deployment repair
+
+ROOT CAUSE
+The GitHub repository currently has app.py, index.html, admin.html and README.md at the repository root, but the app expects the HTML pages in a static/ folder and needs requirements.txt. Render is also configured to run npm install even though this project is a Python Flask app.
+
+IMPORTANT SAFETY
+Do not delete your existing SalesCos Render service or database. Keep the current service until the replacement deployment is live and tested. This project uses CHO SPOT starter data and is not automatically connected to your existing database or Telegram/Chapa accounts.
+
+RECOMMENDED SAFE DEPLOY
+1. Extract this ZIP on your computer.
+2. In a new GitHub repository (recommended) or a separate branch, upload the CONTENTS of this folder while preserving the folder layout. At repository root you should see app.py, requirements.txt, render.yaml, and folders named static/ and sql/.
+3. In Render, create a NEW Web Service connected to that repository and branch. Choose Python as the runtime (not Node).
+4. Build Command: pip install -r requirements.txt
+5. Start Command: gunicorn app:app --workers 2 --threads 4 --timeout 120
+6. Set these environment variables in Render's Environment page, using your real values:
+   SUPABASE_URL
+   SUPABASE_SERVICE_ROLE_KEY
+   TELEGRAM_BOT_TOKEN
+   ADMIN_TELEGRAM_IDS
+   PUBLIC_APP_URL
+   CHAPA_SECRET_KEY (optional until payment is configured)
+   RESTAURANT_NAME=CHO SPOT
+7. Before enabling database use, review sql/schema.sql and run it in the intended Supabase project's SQL Editor. Do not run it against an existing production database without checking for conflicts/backups first.
+8. Deploy. Open https://YOUR-RENDER-URL/health. A successful response should show ok=true. database_configured=false means the Supabase environment variables are missing or incomplete.
+9. Test customer pages, admin access from Telegram, orders, notifications and Chapa in test mode before taking real orders.
+10. Only after the new service works should you decide whether to change the Telegram Mini App URL. Keep the old service available as a rollback until confirmed.
+
+If you try to use the existing service instead, its current runtime may be locked to Node. Changing only the build command may not change the service runtime. If the runtime cannot be changed to Python in Settings, create the new Python Web Service described above.
